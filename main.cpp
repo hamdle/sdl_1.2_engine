@@ -9,8 +9,16 @@
 
 int main(int arc, char* args[])
 {
-	SDL_Init( SDL_INIT_EVERYTHING );
-	printf("Linux FTW!!!");
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+	{
+		printf("SDL failed to initialize!");
+		SDL_Quit();
+		return 1;
+	}
+
+	SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
+	SDL_WM_SetCaption("SDL 1.2", NULL);
+	SDL_Delay(3000);
 	SDL_Quit();
 
 	return 0;
