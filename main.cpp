@@ -11,6 +11,8 @@ SDL_Surface* background = NULL;
 SDL_Surface* sprite = NULL;
 SDL_Surface* backbuffer = NULL;
 
+SDL_Rect spritePos;
+
 bool ProgramIsRunning();
 bool LoadImages();
 void FreeImages();
@@ -36,18 +38,26 @@ int main(int arc, char* args[])
 		return 1;
 	}
 
-	SDL_BlitSurface(background, NULL, backbuffer, NULL);
+	spritePos.x = 0;
+	spritePos.y = 250;
 
 	while (ProgramIsRunning())
 	{
-		SDL_Rect spritePos;
-		spritePos.x = rand() % 800;
-		spritePos.y = rand() % 600;
+		spritePos.x += 5;
 
+		if (spritePos.x > 800)
+		{
+			spritePos.x = -200;
+		}
+
+		SDL_BlitSurface(background, NULL, backbuffer, NULL);
 		SDL_BlitSurface(sprite, NULL, backbuffer, &spritePos);
+
+		SDL_Delay(20);
 		SDL_Flip(backbuffer);
-		SDL_Delay(100);
 	}
+
+	FreeImages();
 
 	SDL_Quit();
 
@@ -79,7 +89,7 @@ bool LoadImages()
 		return false;
 	}
 
-	sprite = SDL_LoadBMP("graphics/sprite.bmp");
+	sprite = SDL_LoadBMP("graphics/spaceship.bmp");
 
 	if (sprite == NULL)
 	{
