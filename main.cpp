@@ -13,9 +13,10 @@ SDL_Surface* backbuffer = NULL;
 
 SDL_Rect spritePos;
 
+SDL_Surface* LoadImage(char* fileName);
 bool ProgramIsRunning();
-bool LoadImages();
-void FreeImages();
+bool LoadFiles();
+void FreeFiles();
 
 int main(int arc, char* args[])
 {
@@ -30,10 +31,10 @@ int main(int arc, char* args[])
 	backbuffer = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
 	SDL_WM_SetCaption("SDL 1.2", NULL);
 
-	if (!LoadImages())
+	if (!LoadFiles())
 	{
 		printf("Images failed to load\n");
-		FreeImages();
+		FreeFiles();
 		SDL_Quit();
 		return 1;
 	}
@@ -57,7 +58,7 @@ int main(int arc, char* args[])
 		SDL_Flip(backbuffer);
 	}
 
-	FreeImages();
+	FreeFiles();
 
 	SDL_Quit();
 
@@ -80,16 +81,39 @@ bool ProgramIsRunning()
 	return running;
 }
 
-bool LoadImages()
+SDL_Surface* LoadImage(char* fileName)
 {
-	background = SDL_LoadBMP("graphics/background.bmp");
+	SDL_Surface* imageLoaded = NULL;
+	SDL_Surface* processedImage = NULL;
+
+	imageLoaded = SDL_LoadBMP(fileName);
+
+	// Ensure the image was loaded correctly
+	if (imageLoaded != NULL)
+	{
+		processedImage = SDL_DisplayFormat(imageLoaded);
+
+		if (processedImage != NULL)
+		{
+			Uint32 colorKey = SDL_MapRGB(processedImage->format, 255, 0, 255);
+			SDL_SetColorKey(processedImage, SDL_SRCCOLORKEY, colorKey);
+		}
+	}
+
+	// Return the processed image
+	return processedImage;
+}
+
+bool LoadFiles()
+{
+	background = LoadImage("graphics/background.bmp");
 
 	if (background == NULL)
 	{
 		return false;
 	}
 
-	sprite = SDL_LoadBMP("graphics/spaceship.bmp");
+	sprite = LoadImage("graphics/spaceship.bmp");
 
 	if (sprite == NULL)
 	{
@@ -99,7 +123,7 @@ bool LoadImages()
 	return true;
 }
 
-void FreeImages()
+void FreeFiles()
 {
 	if (background != NULL)
 	{
