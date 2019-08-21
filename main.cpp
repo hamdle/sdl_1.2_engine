@@ -6,6 +6,7 @@
  */
 
 #include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 
 SDL_Surface* background = NULL;
 SDL_Surface* sprite = NULL;
@@ -113,7 +114,7 @@ SDL_Surface* LoadImage(char* fileName)
 	SDL_Surface* imageLoaded = NULL;
 	SDL_Surface* processedImage = NULL;
 
-	imageLoaded = SDL_LoadBMP(fileName);
+	imageLoaded = IMG_Load(fileName);
 
 	// Ensure the image was loaded correctly
 	if (imageLoaded != NULL)
