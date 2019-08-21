@@ -18,8 +18,10 @@ int frame_counter = 0;
 int background_x = 0;
 TTF_Font* font = NULL;
 
+const int FPS = 30;
+const int FrameDelay = 1000/FPS;
 const int MaxSpriteFrame = 11;
-const int FrameDelay = 2;
+const int AnimFrameDelay = 2;
 
 SDL_Surface* LoadImage(char* fileName);
 void DrawImageFrame(SDL_Surface* image, SDL_Surface* destSurface,
@@ -74,10 +76,12 @@ int main(int arc, char* args[])
 
 	while (ProgramIsRunning())
 	{
+		int frame_start = SDL_GetTicks();
+
 		// Update sprite's frame
 		frame_counter++;
 
-		if (frame_counter > FrameDelay)
+		if (frame_counter > AnimFrameDelay)
 		{
 			frame_counter = 0;
 			sprite_frame++;
@@ -108,7 +112,14 @@ int main(int arc, char* args[])
 		sprintf(buffer, "Frame counter %d", frame_counter);
 		DrawOutlineText(backbuffer, buffer, 100, 100, font, 255, 0, 255);
 
-		SDL_Delay(20);
+		// Frame rate calc
+		int frame_time = SDL_GetTicks() - frame_start;
+
+		if (frame_time < FrameDelay)
+		{
+			SDL_Delay(FrameDelay - frame_time);
+		}
+
 		SDL_Flip(backbuffer);
 	}
 
