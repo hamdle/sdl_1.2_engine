@@ -7,6 +7,7 @@
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
+#include <SDL/SDL_ttf.h>
 
 SDL_Surface* background = NULL;
 SDL_Surface* sprite = NULL;
@@ -15,6 +16,7 @@ SDL_Surface* backbuffer = NULL;
 int sprite_frame = 0;
 int frame_counter = 0;
 int background_x = 0;
+TTF_Font* font = NULL;
 
 const int MaxSpriteFrame = 11;
 const int FrameDelay = 2;
@@ -27,15 +29,35 @@ bool ProgramIsRunning();
 bool LoadFiles();
 void FreeFiles();
 void DrawImage(SDL_Surface* image, SDL_Surface* destSurface, int x, int y);
+void DrawOutlineText(SDL_Surface* surface, char* string, int x, int y,
+		TTF_Font* font, Uint8 r, Uint8 g, Uint8 b);
 
 int main(int arc, char* args[])
 {
 	// Init SDL
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
-		printf("SDL failed to initialize!");
+		printf("SDL failed to initialize.");
 		SDL_Quit();
 		return 1;
+	}
+
+	// Init font
+	if (TTF_Init() == -1)
+	{
+		printf("Failed to initialize font.\n");
+		SDL_Quit();
+		return 1;
+	}
+
+	font = TTF_OpenFont("fonts/sample.ttf", 24);
+
+	if (font == NULL)
+	{
+		printf("Failed to load font.\n");
+		TTF_CloseFont(font);
+		TTF_Quit();
+		SDL_Quit();
 	}
 
 	backbuffer = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
@@ -81,6 +103,10 @@ int main(int arc, char* args[])
 				350, 250,
 				150, 120,
 				sprite_frame);
+
+		char buffer[64];
+		sprintf(buffer, "Frame counter %d", frame_counter);
+		DrawOutlineText(backbuffer, buffer, 100, 100, font, 255, 0, 255);
 
 		SDL_Delay(20);
 		SDL_Flip(backbuffer);
@@ -157,6 +183,27 @@ void DrawImage(SDL_Surface* image, SDL_Surface* destSurface, int x, int y)
 	destRect.y = y;
 
 	SDL_BlitSurface(image, NULL, destSurface, &destRect);
+}
+
+void DrawOutlineText(SDL_Surface* surface, char* string, int x, int y,
+		TTF_Font* font, Uint8 r, Uint8 g, Uint8 b)
+{
+	SDL_Surface* renderedText = NULL;
+
+	SDL_Color color;
+	color.r = r;
+	color.g = g;
+	color.b = b;
+
+	renderedText = TTF_RenderText_Solid(font, string, color);
+
+	SDL_Rect pos;
+
+	pos.x = x;
+	pos.y = y;
+
+	SDL_BlitSurface(renderedText, NULL, surface, &pos);
+	SDL_FreeSurface(renderedText);
 }
 
 bool LoadFiles()
