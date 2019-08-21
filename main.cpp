@@ -11,12 +11,21 @@ SDL_Surface* background = NULL;
 SDL_Surface* sprite = NULL;
 SDL_Surface* backbuffer = NULL;
 
-SDL_Rect spritePos;
+int sprite_frame = 0;
+int frame_counter = 0;
+int background_x = 0;
+
+const int MaxSpriteFrame = 11;
+const int FrameDelay = 2;
 
 SDL_Surface* LoadImage(char* fileName);
+void DrawImageFrame(SDL_Surface* image, SDL_Surface* destSurface,
+		int x, int y,
+		int width, int height, int frame);
 bool ProgramIsRunning();
 bool LoadFiles();
 void FreeFiles();
+void DrawImage(SDL_Surface* image, SDL_Surface* destSurface, int x, int y);
 
 int main(int arc, char* args[])
 {
@@ -29,6 +38,7 @@ int main(int arc, char* args[])
 	}
 
 	backbuffer = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
+
 	SDL_WM_SetCaption("SDL 1.2", NULL);
 
 	if (!LoadFiles())
@@ -39,20 +49,37 @@ int main(int arc, char* args[])
 		return 1;
 	}
 
-	spritePos.x = 0;
-	spritePos.y = 250;
-
 	while (ProgramIsRunning())
 	{
-		spritePos.x += 5;
+		// Update sprite's frame
+		frame_counter++;
 
-		if (spritePos.x > 800)
+		if (frame_counter > FrameDelay)
 		{
-			spritePos.x = -200;
+			frame_counter = 0;
+			sprite_frame++;
 		}
 
-		SDL_BlitSurface(background, NULL, backbuffer, NULL);
-		SDL_BlitSurface(sprite, NULL, backbuffer, &spritePos);
+		if (sprite_frame > MaxSpriteFrame)
+		{
+			sprite_frame = 0;
+		}
+
+		// Update background scrolling
+		background_x -= 6;
+		if (background_x <= -800)
+		{
+			background_x = 0;
+		}
+
+		// Render the scene
+		DrawImage(background, backbuffer, background_x, 0);
+		DrawImage(background, backbuffer, background_x + 800, 0);
+
+		DrawImageFrame(sprite, backbuffer,
+				350, 250,
+				150, 120,
+				sprite_frame);
 
 		SDL_Delay(20);
 		SDL_Flip(backbuffer);
@@ -104,6 +131,33 @@ SDL_Surface* LoadImage(char* fileName)
 	return processedImage;
 }
 
+void DrawImageFrame(SDL_Surface* image, SDL_Surface* destSurface,
+		int x, int y,
+		int width, int height, int frame)
+{
+	SDL_Rect destRect;
+	destRect.x = x;
+	destRect.y = y;
+
+	int columns = image->w / width;
+	SDL_Rect sourceRect;
+	sourceRect.y = (frame / columns) * height;
+	sourceRect.x = (frame % columns) * width;
+	sourceRect.w = width;
+	sourceRect.h = height;
+
+	SDL_BlitSurface(image, &sourceRect, destSurface, &destRect);
+}
+
+void DrawImage(SDL_Surface* image, SDL_Surface* destSurface, int x, int y)
+{
+	SDL_Rect destRect;
+	destRect.x = x;
+	destRect.y = y;
+
+	SDL_BlitSurface(image, NULL, destSurface, &destRect);
+}
+
 bool LoadFiles()
 {
 	background = LoadImage("graphics/background.bmp");
@@ -113,7 +167,7 @@ bool LoadFiles()
 		return false;
 	}
 
-	sprite = LoadImage("graphics/spaceship.bmp");
+	sprite = LoadImage("graphics/demon.bmp");
 
 	if (sprite == NULL)
 	{
